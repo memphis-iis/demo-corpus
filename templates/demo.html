@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %} Corpus Web Service Demo{% endblock %}
+
+{% block page_css %}
+    <style>
+        #ApiMessages {
+            margin-bottom: 12px;
+            padding: 2px;
+            border: 1px solid #000;
+            background-color: #eee;
+        }
+        #ApiMessages div {
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        #LastResponse {
+            padding: 2px;
+            border: 1px solid #000;
+            background-color: #eee;
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        .content-display {
+            border: 1px solid #000;
+            padding: 6px;
+        }
+
+        hr {
+            color: #000;
+            border: 2px solid #000;
+        }
+
+        .apicmd {
+            margin: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block main_content %}
+    <div class="row">
+
+    <div class="col-md-6">
+        <p class="lead well">This is a simple demo of the Corpus Web Service</p>
+
+        <div role="tabpanel">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist" id="tabNavigation">
+                <li role="presentation"><a href="#tabListDocs" aria-controls="tabListDocs" role="tab" data-toggle="tab">
+                    List Documents
+                </a></li>
+                <li role="presentation"><a href="#tabSaveDoc" aria-controls="tabSaveDoc" role="tab" data-toggle="tab">
+                    Save Document
+                </a></li>
+                <li role="presentation"><a href="#tabShowDoc" aria-controls="tabShowDoc" role="tab" data-toggle="tab">
+                    Show Document
+                </a></li>
+                <li role="presentation"><a href="#tabCompareDocs" aria-controls="tabCompareDocs" role="tab" data-toggle="tab">
+                    Compare Documents
+                </a></li>
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane" id="tabListDocs">
+                    <a id="ListDocuments" class="btn btn-default btn-sm apicmd" href="#">List Documents</a>
+                    <hr>
+                    <h1>Last Document List</h1>
+                    <table class="table">
+                        <thead><tr><th>Doc ID</th><th>Title</th></tr></thead>
+                        <tbody id="doclistResults"></tbody>
+                    </table>
+                </div>
+
+                <div role="tabpanel" class="tab-pane" id="tabSaveDoc">
+                    <a id="SaveDocument" class="btn btn-default btn-sm apicmd" href="#">Save Document</a>
+                    <br>
+                    <div class="form-group">
+                        <label for="save_docid">Doc ID</label>
+                        <input type="text" class="form-control" id="save_docid" placeholder="New Document ID (leave blank to autogenerate)">
+
+                        <label for="save_title">Title</label>
+                        <input type="text" class="form-control" id="save_title" placeholder="New Document title">
+
+                        <label for="save_contents">Contents</label><br>
+                        <textarea id="save_contents" placeholder="Actual Document contents" cols="48" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <div role="tabpanel" class="tab-pane" id="tabShowDoc">
+                    <a id="ShowDocument" class="btn btn-default btn-sm apicmd" href="#">Show Document</a>
+                    <br>
+                    <div class="form-group">
+                        <label for="docid">Doc ID</label>
+                        <input type="text" class="form-control" id="docid" placeholder="ID of document to retrieve">
+                    </div>
+                    <hr>
+                    <h1>Last Single Document Retrieved</h1>
+                    <p class="lead">
+                        <span id="show_docid"></span>:
+                        <span id="show_title"></span>
+                    </p>
+                    <p class="content-display" id="show_contents">
+                    </p>
+                </div>
+
+                <div role="tabpanel" class="tab-pane" id="tabCompareDocs">
+                    <a id="CompareDocuments" class="btn btn-default btn-sm apicmd" href="#">Compare Documents</a>
+                    <br>
+                    <div class="form-group">
+                        <label for="docid1">Doc ID 1</label>
+                        <input type="text" class="form-control" id="docid1" placeholder="First document to compare">
+
+                        <label for="docid2">Doc ID 2</label>
+                        <input type="text" class="form-control" id="docid2" placeholder="Second document to compare">
+                    </div>
+                    <hr>
+                    <h1>Last Document Comparison</h1>
+                    <table class="table" id="compareResults">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!--/end Tab panes -->
+        </div> <!--/end tabpanel -->
+    </div> <!--/end col -->
+
+    <div class="col-md-offset-1 col-md-5">
+        <h3>API Messages</h3>
+        <div id="ApiMessages"></div>
+
+        <hr>
+
+        <h3>Last JSON Response from API</h3>
+        <div id="LastResponse"></div>
+    </div>
+    </div> <!--/end row -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showAPIMessage(msg) {
+        $("#ApiMessages").prepend(
+            $("<div></div>").text(msg)
+        );
+    }
+
+    function showLastResponse(data) {
+        $("#LastResponse").text(JSON.stringify(data, null, 2));
+    }
+
+    function corpus_get(url, onDone) {
+        showAPIMessage("GET on " + url);
+        $.ajax({
+            type: "GET",
+            url: url
+        })
+        .done(function(data, textStatus){
+            if (!data) {
+                showAPIMessage("API Error or Problem: no data returned [server call status was " + textStatus + "]");
+            }
+            else {
+                showLastResponse(data);
+            }
+            onDone(data);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown){
+            showAPIMessage("Call to " + url + " FAIL: " + textStatus + ", error:" + errorThrown);
+        });
+    }
+
+    function corpus_post(url, payload, onDone) {
+        showAPIMessage("POST on " + url);
+        $.ajax({
+            type: "POST",
+            url: url,
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            dataType: "json"
+        })
+        .done(function(data, textStatus){
+            if (!data) {
+                showAPIMessage("API Error or Problem: no data returned [server call status was " + textStatus + "]");
+            }
+            else {
+                showLastResponse(data);
+            }
+            onDone(data);
+        })
+        .fail(function(jqXHR, textStatus, errorThrown){
+            showAPIMessage("Call to " + url + " FAIL: " + textStatus + ", error:" + errorThrown);
+        });
+    }
+
+    //Set up actual button events
+    $(function(){
+        //First tab is active
+        $('#tabNavigation a:first').tab('show');
+
+        $("#ListDocuments").click(function(evt){
+            evt.preventDefault();
+            corpus_get("/corpus", function(data){
+                var table = $("#doclistResults");
+                table.empty();
+
+                $.each(data['documents'], function(idx, doc){
+                    table.append($("<tr></tr>")
+                        .append( $("<td></td>").text(doc["document_id"]) )
+                        .append( $("<td></td>").text(doc["title"]) )
+                    );
+                });
+            });
+        });
+
+        $("#ShowDocument").click(function(evt){
+            evt.preventDefault();
+
+            var docid = $("#docid").val();
+            if (!docid) {
+                alert("Need a document ID!");
+                return;
+            }
+
+            corpus_get("/corpus/" + docid, function(data){
+                var contents = _.trim(data['contents']).replace(/\n/g, "<br />");
+
+                $("#show_docid").text(data['document_id']);
+                $("#show_title").text(data['title']);
+                $("#show_contents").html(contents);
+            });
+        });
+
+        $("#CompareDocuments").click(function(evt){
+            evt.preventDefault();
+
+            var docid1 = $("#docid1").val();
+            if (!docid1) {
+                alert("Need the first document ID!");
+                return;
+            }
+
+            var docid2 = $("#docid2").val();
+            if (!docid2) {
+                alert("Need the second document ID!");
+                return;
+            }
+
+            corpus_get("/compare/" + docid1 + "/" + docid2, function(data){
+                var table = $("#compareResults");
+                table.empty();
+
+                var addRow = function(name, value) {
+                    if (typeof value === "undefined")
+                        value = data[name];
+                    table.append($("<tr></tr>")
+                        .append( $("<th></th>").text(name) )
+                        .append( $("<td></td>").text(value) )
+                    );
+                };
+
+                addRow("doc1 url", data["doc1"]["URL"]);
+                addRow("doc1_word_count");
+                addRow("doc2 url", data["doc2"]["URL"]);
+                addRow("doc2_word_count");
+                addRow("total_words");
+                addRow("doc1_unique_words");
+                addRow("doc2_unique_words");
+                addRow("in_common_words");
+                addRow("simple_similarity");
+            });
+        });
+
+        $("#SaveDocument").click(function(evt){
+            evt.preventDefault();
+
+            var docid = $("#save_docid").val();
+            var title = $("#save_title").val();
+            var contents = $("#save_contents").val();
+
+            if (!title || !contents) {
+                alert("Please give both a title AND some content text");
+                return;
+            }
+
+            var url = "/corpus";
+            if (!!docid) {
+                url += "/" + docid;
+            }
+
+            var payload = {
+                title: title,
+                contents: contents
+            };
+
+            corpus_post(url, payload, function(data){
+                alert("Saved document " + data['document_id']);
+            });
+        });
+    });
+</script>
+{% endblock %}
