@@ -5,8 +5,6 @@ from .data import DefinedTable
 
 logger = logging.getLogger(__name__)
 
-#TODO: unit testing
-
 
 def ensure_tables():
     """When called, ensure that all the tables that we need are created in the
