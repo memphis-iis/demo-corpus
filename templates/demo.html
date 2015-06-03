@@ -80,12 +80,16 @@
                     <div class="form-group">
                         <label for="save_docid">Doc ID</label>
                         <input type="text" class="form-control" id="save_docid" placeholder="New Document ID (leave blank to autogenerate)">
+                    </div>
 
+                    <div class="form-group">
                         <label for="save_title">Title</label>
                         <input type="text" class="form-control" id="save_title" placeholder="New Document title">
+                    </div>
 
+                    <div class="form-group">
                         <label for="save_contents">Contents</label><br>
-                        <textarea id="save_contents" placeholder="Actual Document contents" cols="48" rows="4"></textarea>
+                        <textarea id="save_contents" class="form-control" placeholder="Actual Document contents" rows="6"></textarea>
                     </div>
                 </div>
 
@@ -109,18 +113,27 @@
                 <div role="tabpanel" class="tab-pane" id="tabCompareDocs">
                     <a id="CompareDocuments" class="btn btn-default btn-sm apicmd" href="#">Compare Documents</a>
                     <br>
-                    <div class="form-group">
+                    <div class="row form-group">
+                        <div class="col-md-6">
                         <label for="docid1">Doc ID 1</label>
                         <input type="text" class="form-control" id="docid1" placeholder="First document to compare">
+                        </div>
 
+                        <div class="col-md-6">
                         <label for="docid2">Doc ID 2</label>
                         <input type="text" class="form-control" id="docid2" placeholder="Second document to compare">
+                        </div>
                     </div>
                     <hr>
-                    <h1>Last Document Comparison</h1>
+                    <h1>Document Comparison</h1>
+                    <table class="table" id="compareHeadToHead">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                    <h1>Results</h1>
                     <table class="table" id="compareResults">
-                        <tbody>
-                        </tbody>
+                        <thead></thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div> <!--/end Tab panes -->
@@ -248,27 +261,47 @@
             }
 
             corpus_get("/compare/" + docid1 + "/" + docid2, function(data){
-                var table = $("#compareResults");
-                table.empty();
+                var tableCompare = $("#compareHeadToHead");
+                tableCompare.find("thead,tbody").empty();
 
-                var addRow = function(name, value) {
+                tableCompare.find("thead").append(
+                    $("<tr></tr>")
+                        .append($("<th></th>").text("Value"))
+                        .append($("<th></th>").text("Doc 1"))
+                        .append($("<th></th>").text("Doc 2"))
+                );
+                var addCompareRow = function(name, d1val, d2val) {
+                    tableCompare.find("tbody").append($("<tr></tr>")
+                        .append( $("<th></th>").text(name) )
+                        .append( $("<td></td>").text(d1val) )
+                        .append( $("<td></td>").text(d2val) )
+                    );
+                };
+
+                addCompareRow("URL", data["doc1"]["URL"], data["doc2"]["URL"]);
+                addCompareRow("Word Count", data["doc1_word_count"], data["doc2_word_count"]);
+                addCompareRow("Unique Words", data["doc1_unique_words"], data["doc2_unique_words"]);
+
+                var tableResults = $("#compareResults");
+                tableResults.find("thead,tbody").empty();
+
+                tableResults.find("thead").append(
+                    $("<tr></tr>")
+                        .append($("<th></th>").text("Name"))
+                        .append($("<th></th>").text("Value"))
+                );
+                var addResultRow = function(name, value) {
                     if (typeof value === "undefined")
                         value = data[name];
-                    table.append($("<tr></tr>")
+                    tableResults.find("tbody").append($("<tr></tr>")
                         .append( $("<th></th>").text(name) )
                         .append( $("<td></td>").text(value) )
                     );
                 };
 
-                addRow("doc1 url", data["doc1"]["URL"]);
-                addRow("doc1_word_count");
-                addRow("doc2 url", data["doc2"]["URL"]);
-                addRow("doc2_word_count");
-                addRow("total_words");
-                addRow("doc1_unique_words");
-                addRow("doc2_unique_words");
-                addRow("in_common_words");
-                addRow("simple_similarity");
+                addResultRow("total_words");
+                addResultRow("in_common_words");
+                addResultRow("simple_similarity");
             });
         });
 
