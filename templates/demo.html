@@ -209,6 +209,9 @@
 
     //Set up actual button events
     $(function(){
+        //On some browsers (like IE), stop aggressive ajax caching
+        $.ajaxSetup({ cache: false });
+
         //First tab is active
         $('#tabNavigation a:first').tab('show');
 
