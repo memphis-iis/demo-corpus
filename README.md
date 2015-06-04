@@ -54,19 +54,16 @@ to using a virtual Python environment. In this case, perhaps the greatest benefi
 is that you'll be able to more accurately model the Elastic Beanstalk environment
 when you are running the application on your local workstation.
 
-Setting up is handled for you in the shell script `setup.sh`.
+Setting up is handled for you in the shell script `setup.sh` (or `setup.bat` if you
+are running on Windows). Note that if you are using the Anaconda Python distribution
+you'll need to set up a conda env on your own.
+
+You'll also need to install and start up a local DynamoDB instance.
 
 
-Sample AWS web service written in Python
 
-Notes:
-
-- AWS EB will use Python3
-
-- For Flask under Python 3, we need to make sure we're using the latest
-  versions of itsdangerous, Jinja2 and Werkzeug
-
-- We need a requirements.txt file
+TODO
+---------------
 
 - The main file should be application.py
 
